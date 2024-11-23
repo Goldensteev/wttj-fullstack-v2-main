@@ -57,14 +57,18 @@ defmodule Wttj.Candidates do
   end
 
   @doc """
-  Updates a candidate.
+  Updates a candidate and resolves any position conflicts within the same job and status.
+
+  When a candidate is moved to a new position, any other candidates in the same job and status
+  with positions greater than or equal to the new position will have their positions incremented
+  to maintain unique and sequential ordering.
 
   ## Examples
 
-      iex> update_candidate(candidate, %{field: new_value})
+      iex> update_candidate(candidate, %{position: 1, status: "interview"})
       {:ok, %Candidate{}}
 
-      iex> update_candidate(candidate, %{field: bad_value})
+      iex> update_candidate(candidate, %{position: nil, status: "invalid_status"})
       {:error, %Ecto.Changeset{}}
 
   """
