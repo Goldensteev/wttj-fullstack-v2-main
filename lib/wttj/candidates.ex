@@ -70,32 +70,21 @@ defmodule Wttj.Candidates do
   """
   def update_candidate(%Candidate{} = candidate, attrs) do
     Repo.transaction(fn ->
-      conflicts =
-        from(c in Candidate,
-          where:
-            c.job_id == ^candidate.job_id and
-              c.status == ^attrs["status"] and
-              c.position == ^attrs["position"]
-        )
-        |> Repo.all()
+      new_position = attrs["position"]
+      new_status = attrs["status"]
 
-      if Enum.any?(conflicts, fn c -> c.id != candidate.id end) do
-        resolve_position_conflicts(candidate.id, conflicts)
-      end
+      from(c in Candidate,
+        where:
+          c.job_id == ^candidate.job_id and
+            c.status == ^new_status and
+            c.position >= ^new_position and
+            c.id != ^candidate.id
+      )
+      |> Repo.update_all(inc: [position: 1])
 
       candidate
       |> Candidate.changeset(attrs)
       |> Repo.update!()
-    end)
-  end
-
-  defp resolve_position_conflicts(candidate_id, conflicts) do
-    Enum.each(conflicts, fn conflict ->
-      if conflict.id != candidate_id do
-        conflict
-        |> Candidate.changeset(%{position: conflict.position + 1})
-        |> Repo.update!()
-      end
     end)
   end
 

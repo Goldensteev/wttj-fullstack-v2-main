@@ -12,6 +12,10 @@ defmodule Wttj.Repo.Migrations.CreateCandidates do
     end
 
     create index(:candidates, [:job_id])
-    create unique_index(:candidates, [:job_id, :position, :status])
+
+    create unique_index(:candidates, [:job_id, :position, :status],
+             name: :candidates_job_id_position_status_index,
+             options: "DEFERRABLE INITIALLY DEFERRED"
+           )
   end
 end

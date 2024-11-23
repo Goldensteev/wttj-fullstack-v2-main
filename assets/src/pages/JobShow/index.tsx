@@ -38,7 +38,6 @@ function JobShow() {
 
   const onDragEnd = async (result: any) => {
     const { source, destination } = result
-    console.log(result)
 
     if (!destination) return
 
