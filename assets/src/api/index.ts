@@ -34,7 +34,7 @@ export const updateCandidate = async (jobId: string, candidate: Candidate): Prom
   const response = await fetch(
     `http://localhost:4000/api/jobs/${jobId}/candidates/${candidate.id}`,
     {
-      method: 'PATCH',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
