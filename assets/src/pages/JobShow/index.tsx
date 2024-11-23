@@ -4,7 +4,7 @@ import { Text } from '@welcome-ui/text'
 import { Flex } from '@welcome-ui/flex'
 import { Box } from '@welcome-ui/box'
 import { useEffect, useState } from 'react'
-import { Candidate } from '../../api'
+import { Candidate, updateCandidate } from '../../api'
 import CandidateCard from '../../components/Candidate'
 import { Badge } from '@welcome-ui/badge'
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd'
@@ -36,24 +36,55 @@ function JobShow() {
     }
   }, [candidates])
 
-  const onDragEnd = (result: any) => {
+  const onDragEnd = async (result: any) => {
     const { source, destination } = result
+    console.log(result)
 
     if (!destination) return
 
-    if (source.droppableId === destination.droppableId && source.index === destination.index) {
+    const sourceColumn = source.droppableId as Statuses
+    const destinationColumn = destination.droppableId as Statuses
+
+    if (sourceColumn === destinationColumn) {
+      const updatedColumn = Array.from(sortedCandidates[sourceColumn] || [])
+      const [movedItem] = updatedColumn.splice(source.index, 1)
+      updatedColumn.splice(destination.index, 0, movedItem)
+
+      setSortedCandidates(prev => ({
+        ...prev,
+        [sourceColumn]: updatedColumn,
+      }))
+
+      await updateCandidate(jobId, {
+        id: movedItem.id,
+        email: movedItem.email,
+        status: destinationColumn,
+        position: destination.index,
+      })
       return
     }
 
-    const column = source.droppableId as Statuses
-    const updatedColumn = Array.from(sortedCandidates[column] || [])
-    const [movedItem] = updatedColumn.splice(source.index, 1)
-    updatedColumn.splice(destination.index, 0, movedItem)
+    const sourceItems = Array.from(sortedCandidates[sourceColumn] || [])
+    const destinationItems = Array.from(sortedCandidates[destinationColumn] || [])
+    const [movedItem] = sourceItems.splice(source.index, 1)
+
+    const updatedItem = { ...movedItem, status: destinationColumn }
+
+    destinationItems.splice(destination.index, 0, updatedItem)
 
     setSortedCandidates(prev => ({
       ...prev,
-      [column]: updatedColumn,
+      [sourceColumn]: sourceItems,
+      [destinationColumn]: destinationItems,
     }))
+
+    await updateCandidate(jobId, {
+      id: updatedItem.id,
+      email: movedItem.email,
+      status: destinationColumn,
+      position: destination.index,
+    })
+    return
   }
 
   return (
