@@ -45,31 +45,51 @@ function JobShow() {
     const destinationColumn = destination.droppableId as Statuses
 
     if (sourceColumn === destinationColumn) {
-      const updatedColumn = Array.from(sortedCandidates[sourceColumn] || [])
-      const [movedItem] = updatedColumn.splice(source.index, 1)
-      updatedColumn.splice(destination.index, 0, movedItem)
-
-      setSortedCandidates(prev => ({
-        ...prev,
-        [sourceColumn]: updatedColumn,
-      }))
-
-      await updateCandidate(jobId, {
-        id: movedItem.id,
-        email: movedItem.email,
-        status: destinationColumn,
-        position: destination.index,
-      })
-      return
+      await handleReorderWithinColumn(sourceColumn, source.index, destination.index)
+    } else {
+      await handleMoveBetweenColumns(
+        sourceColumn,
+        destinationColumn,
+        source.index,
+        destination.index
+      )
     }
+  }
 
+  const handleReorderWithinColumn = async (
+    column: Statuses,
+    sourceIndex: number,
+    destinationIndex: number
+  ) => {
+    const updatedColumn = Array.from(sortedCandidates[column] || [])
+    const [movedItem] = updatedColumn.splice(sourceIndex, 1)
+    updatedColumn.splice(destinationIndex, 0, movedItem)
+
+    setSortedCandidates(prev => ({
+      ...prev,
+      [column]: updatedColumn,
+    }))
+
+    await updateCandidate(jobId, {
+      id: movedItem.id,
+      email: movedItem.email,
+      status: column,
+      position: destinationIndex,
+    })
+  }
+
+  const handleMoveBetweenColumns = async (
+    sourceColumn: Statuses,
+    destinationColumn: Statuses,
+    sourceIndex: number,
+    destinationIndex: number
+  ) => {
     const sourceItems = Array.from(sortedCandidates[sourceColumn] || [])
     const destinationItems = Array.from(sortedCandidates[destinationColumn] || [])
-    const [movedItem] = sourceItems.splice(source.index, 1)
+    const [movedItem] = sourceItems.splice(sourceIndex, 1)
 
     const updatedItem = { ...movedItem, status: destinationColumn }
-
-    destinationItems.splice(destination.index, 0, updatedItem)
+    destinationItems.splice(destinationIndex, 0, updatedItem)
 
     setSortedCandidates(prev => ({
       ...prev,
@@ -81,9 +101,8 @@ function JobShow() {
       id: updatedItem.id,
       email: movedItem.email,
       status: destinationColumn,
-      position: destination.index,
+      position: destinationIndex,
     })
-    return
   }
 
   return (
