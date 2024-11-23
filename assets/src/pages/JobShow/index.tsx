@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 import { Candidate, updateCandidate } from '../../api'
 import CandidateCard from '../../components/Candidate'
 import { Badge } from '@welcome-ui/badge'
-import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd'
+import { DragDropContext, Draggable, Droppable, DropResult } from '@hello-pangea/dnd'
 
 type Statuses = 'new' | 'interview' | 'hired' | 'rejected'
 const COLUMNS: Statuses[] = ['new', 'interview', 'hired', 'rejected']
@@ -28,7 +28,7 @@ function JobShow() {
 
   useEffect(() => {
     if (candidates) {
-      const sorted = candidates.reduce<SortedCandidates>((acc, c: Candidate) => {
+      const sorted = candidates.reduce<SortedCandidates>((acc: SortedCandidates, c: Candidate) => {
         acc[c.status] = [...(acc[c.status] || []), c].sort((a, b) => a.position - b.position)
         return acc
       }, {})
@@ -36,7 +36,7 @@ function JobShow() {
     }
   }, [candidates])
 
-  const onDragEnd = async (result: any) => {
+  const onDragEnd = async (result: DropResult) => {
     const { source, destination } = result
 
     if (!destination) return
