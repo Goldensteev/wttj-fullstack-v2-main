@@ -100,6 +100,7 @@ function JobShow() {
             {COLUMNS.map(column => (
               <Box
                 key={column}
+                data-testid={`column-${column}`}
                 w={300}
                 border={1}
                 backgroundColor="white"
