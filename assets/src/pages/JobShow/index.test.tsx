@@ -22,10 +22,11 @@ describe('JobShow component', () => {
   const jobId = '1'
   const job = { name: 'Test Job' }
   const candidates: Candidate[] = [
-    { id: 1, email: 'candidate1@example.com', position: 1, status: 'new' },
-    { id: 2, email: 'candidate2@example.com', position: 2, status: 'interview' },
-    { id: 3, email: 'candidate3@example.com', position: 3, status: 'hired' },
-    { id: 4, email: 'candidate4@example.com', position: 4, status: 'rejected' },
+    { id: 1, email: 'candidate1@example.com', position: 0, status: 'new' },
+    { id: 2, email: 'candidate2@example.com', position: 0, status: 'interview' },
+    { id: 3, email: 'candidate3@example.com', position: 0, status: 'hired' },
+    { id: 4, email: 'candidate4@example.com', position: 0, status: 'rejected' },
+    { id: 5, email: 'candidate5@example.com', position: 1, status: 'rejected' },
   ]
 
   beforeEach(() => {
