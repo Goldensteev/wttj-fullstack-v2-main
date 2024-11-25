@@ -1,4 +1,4 @@
-import { render, within } from '@testing-library/react'
+import { fireEvent, render, within } from '@testing-library/react'
 import { describe, expect, test, vi, Mock, beforeEach } from 'vitest'
 import JobShow from '.'
 import { useParams } from 'react-router-dom'
@@ -27,6 +27,7 @@ describe('JobShow component', () => {
     { id: 3, email: 'candidate3@example.com', position: 0, status: 'hired' },
     { id: 4, email: 'candidate4@example.com', position: 0, status: 'rejected' },
     { id: 5, email: 'candidate5@example.com', position: 1, status: 'rejected' },
+    { id: 6, email: 'candidate6@example.com', position: 2, status: 'rejected' },
   ]
 
   beforeEach(() => {
@@ -76,5 +77,39 @@ describe('JobShow component', () => {
         expect(queryByText(candidate.email)).not.toBeInTheDocument()
       })
     })
+  })
+
+  test('allows reordering candidates within the same column via drag and drop', async () => {
+    const { getByTestId } = render(<JobShow />)
+
+    const columnElement = getByTestId('column-rejected')
+    const { queryAllByTestId } = within(columnElement)
+
+    const initialCandidates = queryAllByTestId(testId => testId.startsWith('candidate-item-'))
+
+    expect(initialCandidates).toHaveLength(3)
+    expect(initialCandidates[0]).toHaveTextContent('candidate4@example.com')
+    expect(initialCandidates[1]).toHaveTextContent('candidate5@example.com')
+    expect(initialCandidates[2]).toHaveTextContent('candidate6@example.com')
+
+    const domCandidateElements = queryAllByTestId(testId => testId.startsWith('candidate-item-'))
+    expect(domCandidateElements).toHaveLength(3)
+
+    const draggableItem = domCandidateElements[0]
+    const dropTarget = domCandidateElements[2]
+
+    fireEvent.dragStart(draggableItem)
+    fireEvent.dragEnter(dropTarget)
+    fireEvent.dragOver(dropTarget)
+    fireEvent.drop(dropTarget)
+
+    const updatedDomCandidateElements = queryAllByTestId(testId =>
+      testId.startsWith('candidate-item-')
+    )
+
+    expect(updatedDomCandidateElements).toHaveLength(3)
+    expect(updatedDomCandidateElements[0]).toHaveTextContent('candidate5@example.com')
+    expect(updatedDomCandidateElements[1]).toHaveTextContent('candidate4@example.com')
+    expect(updatedDomCandidateElements[2]).toHaveTextContent('candidate6@example.com')
   })
 })

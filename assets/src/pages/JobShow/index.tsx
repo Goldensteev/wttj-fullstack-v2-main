@@ -140,6 +140,7 @@ function JobShow() {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
+                              data-testid={`candidate-item-${candidate.id}`}
                             >
                               <CandidateCard candidate={candidate} />
                             </div>
