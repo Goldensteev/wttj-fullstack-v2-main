@@ -71,37 +71,46 @@ defmodule Wttj.Candidates do
       iex> update_candidate(candidate, %{position: nil, status: "invalid_status"})
       {:error, %Ecto.Changeset{}}
 
+      iex> update_candidate(candidate, %{email: nil})
+      {:error, %Ecto.Changeset{}}
+
   """
   def update_candidate(%Candidate{} = candidate, attrs) do
-    Repo.transaction(fn ->
-      new_position = attrs["position"]
-      new_status = attrs["status"]
-      old_status = candidate.status
-      old_position = candidate.position
+    changeset = Candidate.changeset(candidate, attrs)
 
-      # Temporarily remove the candidate from its current position
-      from(c in Candidate,
-        where:
-          c.job_id == ^candidate.job_id and
-            c.status == ^old_status and
-            c.position > ^old_position
-      )
-      |> Repo.update_all(inc: [position: -1])
+    if changeset.valid? do
+      Repo.transaction(fn ->
+        new_position = Map.get(attrs, "position")
+        new_status = Map.get(attrs, "status")
+        old_status = candidate.status
+        old_position = candidate.position
 
-      # Adjust positions in the new column
-      from(c in Candidate,
-        where:
-          c.job_id == ^candidate.job_id and
-            c.status == ^new_status and
-            c.position >= ^new_position
-      )
-      |> Repo.update_all(inc: [position: 1])
+        if new_position && old_position do
+          # Temporarily remove the candidate from its current position
+          from(c in Candidate,
+            where:
+              c.job_id == ^candidate.job_id and
+                c.status == ^old_status and
+                c.position > ^old_position
+          )
+          |> Repo.update_all(inc: [position: -1])
 
-      # Update the candidate's status and position
-      candidate
-      |> Candidate.changeset(attrs)
-      |> Repo.update!()
-    end)
+          # Adjust positions in the new column
+          from(c in Candidate,
+            where:
+              c.job_id == ^candidate.job_id and
+                c.status == ^new_status and
+                c.position >= ^new_position
+          )
+          |> Repo.update_all(inc: [position: 1])
+        end
+
+        # Update the candidate's status and position
+        Repo.update!(changeset)
+      end)
+    else
+      {:error, changeset}
+    end
   end
 
   @doc """
