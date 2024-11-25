@@ -76,16 +76,28 @@ defmodule Wttj.Candidates do
     Repo.transaction(fn ->
       new_position = attrs["position"]
       new_status = attrs["status"]
+      old_status = candidate.status
+      old_position = candidate.position
 
+      # Temporarily remove the candidate from its current position
+      from(c in Candidate,
+        where:
+          c.job_id == ^candidate.job_id and
+            c.status == ^old_status and
+            c.position > ^old_position
+      )
+      |> Repo.update_all(inc: [position: -1])
+
+      # Adjust positions in the new column
       from(c in Candidate,
         where:
           c.job_id == ^candidate.job_id and
             c.status == ^new_status and
-            c.position >= ^new_position and
-            c.id != ^candidate.id
+            c.position >= ^new_position
       )
       |> Repo.update_all(inc: [position: 1])
 
+      # Update the candidate's status and position
       candidate
       |> Candidate.changeset(attrs)
       |> Repo.update!()
